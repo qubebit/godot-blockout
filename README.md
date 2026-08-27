@@ -5,11 +5,15 @@
 [![Github tag](https://badgen.net/github/tag/qubebit/godot-blockout)](https://github.com/qubebit/godot-blockout/tags)
 [![GitHub](https://img.shields.io/github/license/qubebit/godot-blockout)](https://github.com/qubebit/godot-blockout/blob/master/LICENSE)
 
-This repository contains a Godot plugin for blockout and greybox level prototyping tools.
+This repository contains a Godot plugin for building blockout and greybox levels.
+
+## Tools
+
+- **CSGInstance3D**: Automatically bakes CSG geometry into a runtime mesh while keeping the original CSG objects available for editing. Designed for blockout, greyboxing, collision, and lightmapping workflows. See [CSGInstance3D](./wiki/csg-instance-3d.md) for details.
 
 > [!WARNING]
-> This repository is in early development and is not yet ready for production use. The API is subject to change without deprecation, and there may be breaking changes in future releases.
+> This project is still in early development and is not ready for production use. The API may change without deprecation, and future releases may include breaking changes.
 
 # Wiki
 
-- [Development](./wiki/DEVELOPMENT.md)
+- [Development](./wiki/development.md)
