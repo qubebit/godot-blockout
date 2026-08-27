@@ -1,6 +1,7 @@
 #include "blockout/scene/csg_instance_3d.h"
 
 #include "blockout/api/csg_bake.h"
+#include "blockout/api/csg_collision.h"
 #include "gdutil/nodes.h"
 
 #include "godot_cpp/classes/engine.hpp"
@@ -26,6 +27,32 @@ void CSGInstance3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_edit_mode"), &CSGInstance3D::is_edit_mode);
 
 	ClassDB::bind_method(D_METHOD("rebuild_mesh"), &CSGInstance3D::rebuild_mesh);
+
+	ClassDB::bind_method(D_METHOD("set_generate_collision", "enabled"), &CSGInstance3D::set_generate_collision);
+	ClassDB::bind_method(D_METHOD("is_generating_collision"), &CSGInstance3D::is_generating_collision);
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "generate_collision"), "set_generate_collision",
+				 "is_generating_collision");
+
+	ClassDB::bind_method(D_METHOD("set_collision_layer", "layer"), &CSGInstance3D::set_collision_layer);
+	ClassDB::bind_method(D_METHOD("get_collision_layer"), &CSGInstance3D::get_collision_layer);
+	ADD_GROUP("Collision", "collision_");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "collision_layer", PROPERTY_HINT_LAYERS_3D_PHYSICS), "set_collision_layer",
+				 "get_collision_layer");
+
+	ClassDB::bind_method(D_METHOD("set_collision_mask", "mask"), &CSGInstance3D::set_collision_mask);
+	ClassDB::bind_method(D_METHOD("get_collision_mask"), &CSGInstance3D::get_collision_mask);
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "collision_mask", PROPERTY_HINT_LAYERS_3D_PHYSICS), "set_collision_mask",
+				 "get_collision_mask");
+}
+
+void CSGInstance3D::_validate_property(PropertyInfo &p_property) const {
+	if (generate_collision) {
+		return;
+	}
+
+	if (p_property.name == StringName("collision_layer") || p_property.name == StringName("collision_mask")) {
+		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+	}
 }
 
 void CSGInstance3D::_enter_tree() {
@@ -116,6 +143,57 @@ void CSGInstance3D::update_render_visibility() {
 	RenderingServer::get_singleton()->instance_set_visible(get_instance(), is_visible_in_tree() && !edit_mode);
 }
 
+StaticBody3D *CSGInstance3D::find_collision_body() const {
+	return gdutil::nodes::find_child<StaticBody3D>(this, /*p_include_internal=*/true);
+}
+
+void CSGInstance3D::remove_collision_body() {
+	StaticBody3D *body = find_collision_body();
+	if (body == nullptr) {
+		return;
+	}
+
+	remove_child(body);
+	body->queue_free();
+}
+
+StaticBody3D *CSGInstance3D::ensure_collision_body() {
+	if (StaticBody3D *body = find_collision_body()) {
+		return body;
+	}
+
+	StaticBody3D *body = memnew(StaticBody3D);
+	body->set_name("GeneratedCollision");
+	add_child(body, false, INTERNAL_MODE_BACK);
+	set_owner_recursive(body, get_owner() != nullptr ? get_owner() : this);
+	return body;
+}
+
+CollisionShape3D *CSGInstance3D::ensure_collision_shape(StaticBody3D *p_body) {
+	if (CollisionShape3D *shape = gdutil::nodes::find_child<CollisionShape3D>(p_body)) {
+		return shape;
+	}
+
+	CollisionShape3D *shape = memnew(CollisionShape3D);
+	p_body->add_child(shape);
+	set_owner_recursive(shape, get_owner() != nullptr ? get_owner() : this);
+	return shape;
+}
+
+void CSGInstance3D::update_collision(const Ref<Mesh> &p_mesh) {
+	if (!generate_collision || p_mesh.is_null()) {
+		remove_collision_body();
+		return;
+	}
+
+	StaticBody3D *body = ensure_collision_body();
+	CollisionShape3D *collision_shape = ensure_collision_shape(body);
+
+	body->set_collision_layer(collision_layer);
+	body->set_collision_mask(collision_mask);
+	collision_shape->set_shape(blockout::api::build_trimesh_collision_shape(p_mesh));
+}
+
 void CSGInstance3D::append_baked_warnings(PackedStringArray &p_warnings) const {
 	if (csg_source.is_null()) {
 		p_warnings.push_back("CSGInstance3D has no CSGShape3D child to bake. Add a CSGBox3D, CSGCombiner3D, "
@@ -159,8 +237,36 @@ void CSGInstance3D::rebuild_mesh() {
 		return;
 	}
 
-	set_mesh(blockout::api::bake_csg_mesh(root, get_global_transform(), lightmap_texel_size));
+	Ref<ArrayMesh> mesh = blockout::api::bake_csg_mesh(root, get_global_transform(), lightmap_texel_size);
+	set_mesh(mesh);
+	update_collision(mesh);
 }
+
+void CSGInstance3D::set_generate_collision(bool p_enabled) {
+	generate_collision = p_enabled;
+	update_collision(get_mesh());
+	notify_property_list_changed();
+}
+
+bool CSGInstance3D::is_generating_collision() const { return generate_collision; }
+
+void CSGInstance3D::set_collision_layer(uint32_t p_layer) {
+	collision_layer = p_layer;
+	if (StaticBody3D *body = find_collision_body()) {
+		body->set_collision_layer(p_layer);
+	}
+}
+
+uint32_t CSGInstance3D::get_collision_layer() const { return collision_layer; }
+
+void CSGInstance3D::set_collision_mask(uint32_t p_mask) {
+	collision_mask = p_mask;
+	if (StaticBody3D *body = find_collision_body()) {
+		body->set_collision_mask(p_mask);
+	}
+}
+
+uint32_t CSGInstance3D::get_collision_mask() const { return collision_mask; }
 
 PackedStringArray CSGInstance3D::_get_configuration_warnings() const {
 	PackedStringArray warnings = MeshInstance3D::_get_configuration_warnings();

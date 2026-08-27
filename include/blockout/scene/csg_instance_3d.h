@@ -1,8 +1,10 @@
 #pragma once
 
+#include "godot_cpp/classes/collision_shape3d.hpp"
 #include "godot_cpp/classes/csg_shape3d.hpp"
 #include "godot_cpp/classes/mesh_instance3d.hpp"
 #include "godot_cpp/classes/packed_scene.hpp"
+#include "godot_cpp/classes/static_body3d.hpp"
 #include "godot_cpp/variant/packed_string_array.hpp"
 
 using namespace godot;
@@ -12,8 +14,12 @@ namespace blockout::scene {
 class CSGInstance3D : public MeshInstance3D {
 	GDCLASS(CSGInstance3D, MeshInstance3D)
 
-	float lightmap_texel_size = 0.2f;
 	Ref<PackedScene> csg_source;
+	float lightmap_texel_size = 0.2f;
+
+	bool generate_collision = false;
+	uint32_t collision_layer = 1;
+	uint32_t collision_mask = 1;
 
 	CSGShape3D *find_csg_root() const;
 	void free_csg_children();
@@ -22,6 +28,11 @@ class CSGInstance3D : public MeshInstance3D {
 	static void set_owner_recursive(Node *p_node, Node *p_owner);
 
 	void update_render_visibility();
+	void update_collision(const Ref<Mesh> &p_mesh);
+	StaticBody3D *find_collision_body() const;
+	void remove_collision_body();
+	StaticBody3D *ensure_collision_body();
+	CollisionShape3D *ensure_collision_shape(StaticBody3D *p_body);
 	void append_baked_warnings(PackedStringArray &p_warnings) const;
 	void append_edit_mode_warnings(PackedStringArray &p_warnings) const;
 
@@ -31,12 +42,22 @@ class CSGInstance3D : public MeshInstance3D {
 protected:
 	static void _bind_methods();
 	void _notification(int p_what);
+	void _validate_property(PropertyInfo &p_property) const;
 
 public:
 	void _enter_tree() override;
 
 	void set_lightmap_texel_size(float p_texel_size);
 	float get_lightmap_texel_size() const;
+
+	void set_generate_collision(bool p_enabled);
+	bool is_generating_collision() const;
+
+	void set_collision_layer(uint32_t p_layer);
+	uint32_t get_collision_layer() const;
+
+	void set_collision_mask(uint32_t p_mask);
+	uint32_t get_collision_mask() const;
 
 	void set_edit_mode(bool p_enabled);
 	bool is_edit_mode() const;
