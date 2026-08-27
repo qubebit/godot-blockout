@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dxvswbiws0pfk"]
+
+[ext_resource type="Script" uid="uid://dr348kc4uyodo" path="res://addons/blockout/editor/blockout_toolbar.gd" id="1"]
+
+[node name="BlockoutToolbar" type="MenuButton"]
+script = ExtResource("1")

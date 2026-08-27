@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="CSGInstance3D" inherits="MeshInstance3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		An editable mesh backed by CSG shapes, combined and ready for blockouts.
+	</brief_description>
+	<description>
+		[CSGInstance3D] is a [MeshInstance3D] backed by editable CSG shapes (e.g. [CSGBox3D], [CSGCombiner3D], etc). In edit mode you can add and edit CSG shapes directly; leaving edit mode bakes them into this node's mesh.
+		CSG shapes on their own can't receive baked lighting. Baking them into a real mesh unlocks static lighting with [LightmapGI], while also improving performance and compatibility with other nodes.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="is_edit_mode" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if the node is currently in edit mode.
+			</description>
+		</method>
+		<method name="rebuild_mesh">
+			<return type="void" />
+			<description>
+				Rebuilds the baked mesh, including lightmap UV2.
+			</description>
+		</method>
+		<method name="set_edit_mode">
+			<return type="void" />
+			<param index="0" name="enabled" type="bool" />
+			<description>
+				Toggles edit mode.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="lightmap_texel_size" type="float" setter="set_lightmap_texel_size" getter="get_lightmap_texel_size" default="0.2">
+			Texel size used when generating lightmap UV2, in the same units as [method ArrayMesh.lightmap_unwrap].
+		</member>
+	</members>
+</class>

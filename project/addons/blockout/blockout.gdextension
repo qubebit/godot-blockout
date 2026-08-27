@@ -4,6 +4,10 @@ entry_symbol = "blockout_library_init"
 compatibility_minimum = "4.1"
 reloadable = true
 
+[icons]
+
+CSGInstance3D = "icons/csg_instance_3d.svg"
+
 [libraries]
 ; Relative paths ensure that our GDExtension can be placed anywhere in the project directory.
 macos.single.debug = "./bin/macos/libblockout.macos.template_debug.dylib"
