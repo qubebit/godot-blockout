@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://caeejfigoalwe"]
 
-[ext_resource type="PackedScene" uid="uid://hcy15nsny6du" path="res://addons/demos/Demo.tscn" id="1_0vkom"]
+[ext_resource type="PackedScene" uid="uid://hcy15nsny6du" path="res://demos/Demo.tscn" id="1_0vkom"]
 
 [node name="Startup" type="Node3D" unique_id=1387201142]
 
