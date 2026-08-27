@@ -12,7 +12,7 @@ This repository contains a Godot plugin for building blockout and greybox levels
 
 ## Tools
 
-- `CSGInstance3D` - Automatically bakes CSG geometry into a runtime mesh while keeping original CSG objects available for editing. Designed for blockout, greyboxing, collision, and lightmapping. See [CSGInstance3D](./wiki/csg-instance-3d.md) for details.
+- `CSGInstance3D` - A `MeshInstance3D` based node backed by CSG nodes. Designed for blockout, greyboxing and prototyping. See [CSGInstance3D](./wiki/csg-instance-3d.md) for details.
 
 ## Wiki
 
