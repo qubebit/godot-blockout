@@ -76,12 +76,23 @@ void CSGInstance3D::_notification(int p_what) {
 		case NOTIFICATION_VISIBILITY_CHANGED: {
 			update_render_visibility();
 		} break;
+		case NOTIFICATION_PREDELETE: {
+			free_cached_csg_root();
+		} break;
 		default: {
 		} break;
 	}
 }
 
 CSGShape3D *CSGInstance3D::find_csg_root() const { return gdutil::nodes::find_child<CSGShape3D>(this); }
+
+void CSGInstance3D::free_cached_csg_root() {
+	if (cached_csg_root != nullptr && cached_csg_root->get_parent() == nullptr) {
+		memdelete(cached_csg_root);
+	}
+
+	cached_csg_root = nullptr;
+}
 
 void CSGInstance3D::free_csg_children() {
 	gdutil::nodes::for_each_child<CSGShape3D>(this, [this](CSGShape3D *shape) {
@@ -90,23 +101,31 @@ void CSGInstance3D::free_csg_children() {
 	});
 }
 
-bool CSGInstance3D::enter_edit_mode(CSGShape3D *p_root) {
-	if (p_root != nullptr || csg_source.is_null()) {
+bool CSGInstance3D::instantiate_cached_csg_root() {
+	if (csg_source.is_null()) {
 		return false;
 	}
 
 	Node *instance = csg_source->instantiate();
-	CSGShape3D *instanced_root = Object::cast_to<CSGShape3D>(instance);
-	if (instanced_root == nullptr) {
-		if (instance != nullptr) {
-			memdelete(instance);
-		}
+	cached_csg_root = Object::cast_to<CSGShape3D>(instance);
+	if (cached_csg_root != nullptr) {
+		return true;
+	}
 
+	if (instance != nullptr) {
+		memdelete(instance);
+	}
+
+	return false;
+}
+
+bool CSGInstance3D::enter_edit_mode(CSGShape3D *p_root) {
+	if (p_root != nullptr || (cached_csg_root == nullptr && !instantiate_cached_csg_root())) {
 		return false;
 	}
 
-	add_child(instanced_root);
-	set_owner_recursive(instanced_root, get_owner() != nullptr ? get_owner() : this);
+	add_child(cached_csg_root);
+	set_owner_recursive(cached_csg_root, get_owner() != nullptr ? get_owner() : this);
 	return true;
 }
 
@@ -124,8 +143,9 @@ bool CSGInstance3D::exit_edit_mode(CSGShape3D *p_root) {
 	packed.instantiate();
 	packed->pack(p_root);
 	csg_source = packed;
+
+	// Not freed: cached_csg_root keeps it alive so undo/redo of edits made in edit mode stays valid.
 	remove_child(p_root);
-	p_root->queue_free();
 	return true;
 }
 

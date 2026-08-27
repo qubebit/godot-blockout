@@ -17,6 +17,7 @@ class CSGInstance3D : public MeshInstance3D {
 
 	Ref<PackedScene> csg_source;
 	float lightmap_texel_size = 0.2f;
+	CSGShape3D *cached_csg_root = nullptr;
 
 	bool generate_collision = false;
 	uint32_t collision_layer = 1;
@@ -27,6 +28,8 @@ class CSGInstance3D : public MeshInstance3D {
 	void free_csg_children();
 	bool enter_edit_mode(CSGShape3D *p_root);
 	bool exit_edit_mode(CSGShape3D *p_root);
+	bool instantiate_cached_csg_root();
+	void free_cached_csg_root();
 	static void set_owner_recursive(Node *p_node, Node *p_owner);
 
 	void update_render_visibility();
