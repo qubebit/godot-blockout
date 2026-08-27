@@ -1,8 +1,13 @@
 @tool
+class_name BlockoutEditModeBanner
 extends PanelContainer
 
 
 func _ready() -> void:
+    _setup_banner()
+
+
+func _setup_banner() -> void:
     mouse_filter = Control.MOUSE_FILTER_IGNORE
 
     var settings := EditorInterface.get_editor_settings()

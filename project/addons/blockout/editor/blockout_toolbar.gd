@@ -1,4 +1,5 @@
 @tool
+class_name BlockoutToolbar
 extends MenuButton
 
 signal edit_mode_toggled(enabled: bool)
@@ -9,24 +10,41 @@ const ITEM_REBUILD := 1
 
 
 func _ready() -> void:
-    text = "Blockout"
-    focus_mode = Control.FOCUS_NONE
-    var popup := get_popup()
-    popup.add_check_item("Edit Mode", ITEM_EDIT_MODE)
-    popup.add_item("Rebuild Mesh", ITEM_REBUILD)
-    popup.id_pressed.connect(_on_id_pressed)
+    _setup_popup()
 
 
 func set_edit_mode_pressed(enabled: bool) -> void:
     var popup := get_popup()
-    popup.set_item_checked(popup.get_item_index(ITEM_EDIT_MODE), enabled)
+    var idx := popup.get_item_index(ITEM_EDIT_MODE)
+    if idx == -1:
+        return
+    popup.set_item_checked(idx, enabled)
+
+
+func _setup_popup() -> void:
+    var popup := get_popup()
+    popup.clear()
+    popup.add_check_item("Edit Mode", ITEM_EDIT_MODE)
+    popup.add_item("Rebuild Mesh", ITEM_REBUILD)
+    if not popup.id_pressed.is_connected(_on_id_pressed):
+        popup.id_pressed.connect(_on_id_pressed)
 
 
 func _on_id_pressed(id: int) -> void:
     match id:
         ITEM_EDIT_MODE:
-            var popup := get_popup()
-            var idx := popup.get_item_index(ITEM_EDIT_MODE)
-            edit_mode_toggled.emit(not popup.is_item_checked(idx))
+            _toggle_edit_mode()
         ITEM_REBUILD:
-            rebuild_requested.emit()
+            _request_rebuild()
+
+
+func _toggle_edit_mode() -> void:
+    var popup := get_popup()
+    var idx := popup.get_item_index(ITEM_EDIT_MODE)
+    if idx == -1:
+        return
+    edit_mode_toggled.emit(not popup.is_item_checked(idx))
+
+
+func _request_rebuild() -> void:
+    rebuild_requested.emit()

@@ -1,6 +1,16 @@
 [gd_scene format=3 uid="uid://dxvswbiws0pfk"]
 
 [ext_resource type="Script" uid="uid://dr348kc4uyodo" path="res://addons/blockout/editor/blockout_toolbar.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://c242fbpttp1q3" path="res://addons/blockout/icons/csg_instance_3d.svg" id="2_icon"]
 
-[node name="BlockoutToolbar" type="MenuButton"]
+[node name="BlockoutToolbar" type="MenuButton" unique_id=797927045]
+focus_mode = 0
+text = "Blockout"
+icon = ExtResource("2_icon")
+item_count = 2
+popup/item_0/text = "Edit Mode"
+popup/item_0/checkable = 1
+popup/item_0/id = 0
+popup/item_1/text = "Rebuild Mesh"
+popup/item_1/id = 1
 script = ExtResource("1")
