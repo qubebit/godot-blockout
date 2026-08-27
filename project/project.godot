@@ -11,8 +11,8 @@ config_version=5
 [application]
 
 config/name="Blockout"
-run/main_scene="uid://dh0oj81pufivs"
-config/features=PackedStringArray("4.6", "Forward Plus")
+run/main_scene="uid://hcy15nsny6du"
+config/features=PackedStringArray("4.7", "Forward Plus")
 boot_splash/show_image=false
 config/icon="res://icon.svg"
 
@@ -20,6 +20,10 @@ config/icon="res://icon.svg"
 
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+
+[dotnet]
+
+project/assembly_name="Blockout"
 
 [editor_plugins]
 
