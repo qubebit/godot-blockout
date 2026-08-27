@@ -1,0 +1,36 @@
+[gd_scene format=4 uid="uid://hcy15nsny6du"]
+
+[sub_resource type="PackedScene" id="PackedScene_udokr"]
+_bundled = {
+"conn_count": 0,
+"conns": PackedInt32Array(),
+"editable_instances": [],
+"id_paths": [],
+"names": PackedStringArray("CSGCombiner3D", "CSGBox3D", "transform", "size"),
+"node_count": 2,
+"node_ids": PackedInt32Array(929785199, 594065729),
+"node_paths": [],
+"nodes": PackedInt32Array(-1, -1, 0, 0, -1, 0, 0, 0, 0, 1, 1, -1, 2, 2, 0, 3, 1, 0),
+"variants": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.30700684, 0, -0.17736816), Vector3(5.6853027, 1, 6.8654785)],
+"version": 3
+}
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_l4713"]
+lightmap_size_hint = Vector2i(62, 62)
+_surfaces = [{
+"aabb": AABB(-3.1496582, -0.5, -3.6101074, 5.6853027, 1, 6.8654785),
+"attribute_data": PackedByteArray("AACAPwAAgD+21ho/OudcPwAAgD8AAAAACCEEPDrnXD8AAAAAAAAAAAghBDwRQkg/AACAPwAAgD+MMQY/CCEEPAAAgD8AAAAAfO99PwghBDwAAAAAAAAAAHzvfT+21ho/AACAPwAAgD98730/fO99PwAAgD8AAAAAfO99P1NKaT8AAAAAAAAAAIwxBj9TSmk/AAAAAAAAgD+21ho/EUJIPwAAgD8AAIA/55zzPlNKaT8AAIA/AAAAAOec8z58730/AAAAAAAAAAAIIQQ8fO99PwAAAAAAAAAA55zzPrbWGj8AAAAAAACAPwghBDy21ho/AACAPwAAgD8IIQQ8CCEEPAAAAAAAAIA/jDEGP7bWGj8AAAAAAACAPwghBDxTSmk/AACAPwAAgD8IIQQ8+N47PwAAgD8AAAAAttYaP/jeOz8AAAAAAAAAALbWGj/OOSc/AAAAAAAAgD+MMQY/fO99PwAAgD8AAAAA55zzPgghBDwAAAAAAACAPwghBDzOOSc/"),
+"format": 34359742519,
+"index_count": 36,
+"index_data": PackedByteArray("AAABAAIAAwAEAAUABgAHAAgAAgAJAAAACgALAAwADQAOAA8ABQAQAAMADAARAAoAEgATABQACAAVAAYADwAWAA0AFAAXABIA"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 24,
+"vertex_data": PackedByteArray("AJRJwAAAAL8AWFBAAJRJwAAAAL8ADGfAAJRJwAAAAD8ADGfAAEgiQAAAAL8ADGfAAJRJwAAAAL8ADGfAAJRJwAAAAL8AWFBAAJRJwAAAAD8ADGfAAJRJwAAAAL8ADGfAAEgiQAAAAL8ADGfAAJRJwAAAAD8AWFBAAJRJwAAAAL8AWFBAAJRJwAAAAD8AWFBAAEgiQAAAAD8AWFBAAEgiQAAAAD8AWFBAAJRJwAAAAD8AWFBAAJRJwAAAAD8ADGfAAEgiQAAAAL8AWFBAAEgiQAAAAL8AWFBAAEgiQAAAAL8ADGfAAEgiQAAAAL8AWFBAAEgiQAAAAD8AWFBAAEgiQAAAAD8ADGfAAEgiQAAAAD8ADGfAAEgiQAAAAD8ADGfAAAAAgP9//n8AAACA/3/+fwAAAID/f/5/AIAAAP//AAAAgAAA//8AAACAAAD//wAA/////wAA/z//////AAD/P/////8AAP8/AAAAgP9//n//f/9/AAD/P/9//38AAP8//3//fwAA/z8AgP////8AAACA/////wAAAID/////AAAAgAAA//8AAP9//38AAP8///8AgP9//n///wCA/3/+f///AID/f/5//////wAA/z8AgP////8AAP//AID/f/5/")
+}]
+
+[node name="Demo" type="Node3D" unique_id=1387201142]
+
+[node name="CSGInstance3D" type="CSGInstance3D" parent="." unique_id=1927997432]
+csg_source = SubResource("PackedScene_udokr")
+mesh = SubResource("ArrayMesh_l4713")

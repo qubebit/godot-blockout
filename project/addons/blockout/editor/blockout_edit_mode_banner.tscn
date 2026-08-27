@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://v1oannbrfn5i"]
+
+[ext_resource type="Script" uid="uid://ulgeskiprbla" path="res://addons/blockout/editor/blockout_edit_mode_banner.gd" id="1"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+content_margin_left = 8.0
+content_margin_top = 2.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0.25)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="BlockoutEditModeBanner" type="PanelContainer" unique_id=706053592]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -106.5
+offset_top = 20.0
+offset_right = 100.5
+offset_bottom = 49.0
+grow_horizontal = 2
+offset_transform_enabled = true
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+script = ExtResource("1")
+
+[node name="Label" type="Label" parent="." unique_id=672968790]
+layout_mode = 2
+theme_type_variation = &"TooltipLabel"
+text = "Edit Mode - Ctrl+E to exit"
