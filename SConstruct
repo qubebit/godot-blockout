@@ -5,7 +5,7 @@ import sys
 from methods import print_error
 
 
-libname = "csg_tools"
+libname = "blockout"
 projectdir = "project"
 
 localEnv = Environment(tools=["default"], PLATFORM="")
@@ -72,7 +72,7 @@ library = env.SharedLibrary(
     source=sources,
 )
 
-copy = env.Install("{}/addons/csg_tools/bin/{}/".format(projectdir, env["platform"]), library)
+copy = env.Install("{}/addons/blockout/bin/{}/".format(projectdir, env["platform"]), library)
 
 default_args = [library, copy]
 Default(*default_args)

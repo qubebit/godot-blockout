@@ -4,8 +4,9 @@
 #include <utility>
 
 #include <godot_cpp/variant/utility_functions.hpp>
+#include <godot_cpp/variant/variant.hpp>
 
-namespace csg_tools::logging {
+namespace gdutil::logging {
 
 struct Field {
 	godot::String key;
@@ -19,12 +20,12 @@ struct Field {
 
 template <typename T> Field field(const char *p_key, T &&p_value) { return Field(p_key, std::forward<T>(p_value)); }
 
-template <typename... Fields> void debug(bool p_enabled, const char *p_message, Fields &&...p_fields) {
+template <typename... Fields>
+void debug(bool p_enabled, const char *p_tag, const char *p_message, Fields &&...p_fields) {
 	if (!p_enabled) {
 		return;
 	}
-	godot::String line("[CSGTools] ");
-	line += p_message;
+	godot::String line = godot::vformat("[%s] %s", p_tag, p_message);
 	const std::initializer_list<Field> fields{ std::forward<Fields>(p_fields)... };
 	for (const Field &field : fields) {
 		line += " ";
@@ -35,4 +36,4 @@ template <typename... Fields> void debug(bool p_enabled, const char *p_message, 
 	godot::UtilityFunctions::print(line);
 }
 
-} // namespace csg_tools::logging
+} // namespace gdutil::logging

@@ -3,20 +3,20 @@
 .godot/
 
 # Ignore library files but not the gdextension file
-project/addons/csg_tools/bin/*
-!project/addons/csg_tools/bin/android
-project/addons/csg_tools/bin/android/*
-!project/addons/csg_tools/bin/android/.gitkeep
-!project/addons/csg_tools/bin/linux
-project/addons/csg_tools/bin/linux/*
-!project/addons/csg_tools/bin/linux/.gitkeep
-!project/addons/csg_tools/bin/macos
-project/addons/csg_tools/bin/macos/*
-!project/addons/csg_tools/bin/macos/.gitkeep
-!project/addons/csg_tools/bin/windows
-project/addons/csg_tools/bin/windows/*
-!project/addons/csg_tools/bin/windows/.gitkeep
-!project/addons/csg_tools/bin/*.gdextension
+project/addons/blockout/bin/*
+!project/addons/blockout/bin/android
+project/addons/blockout/bin/android/*
+!project/addons/blockout/bin/android/.gitkeep
+!project/addons/blockout/bin/linux
+project/addons/blockout/bin/linux/*
+!project/addons/blockout/bin/linux/.gitkeep
+!project/addons/blockout/bin/macos
+project/addons/blockout/bin/macos/*
+!project/addons/blockout/bin/macos/.gitkeep
+!project/addons/blockout/bin/windows
+project/addons/blockout/bin/windows/*
+!project/addons/blockout/bin/windows/.gitkeep
+!project/addons/blockout/bin/*.gdextension
 
 # Ignore top-level build output binaries but keep platform folders
 bin/*

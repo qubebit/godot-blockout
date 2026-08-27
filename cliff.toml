@@ -11,7 +11,7 @@ body = """
     {% if commit.breaking %}[**breaking**] {% endif %}\
     {{ commit.message | upper_first }}\
     {% if commit.remote.pr_number %} \
-      ([#{{ commit.remote.pr_number }}](https://github.com/qubebit/godot-csg-tools/pull/{{ commit.remote.pr_number }}))\
+      ([#{{ commit.remote.pr_number }}](https://github.com/qubebit/godot-blockout/pull/{{ commit.remote.pr_number }}))\
     {% endif %}\
     {% if commit.remote.username %} by @{{ commit.remote.username }}{% endif %}
 {%- endfor %}
@@ -41,4 +41,4 @@ sort_commits = "oldest"
 
 [remote.github]
 owner = "qubebit"
-repo = "godot-csg-tools"
+repo = "godot-blockout"

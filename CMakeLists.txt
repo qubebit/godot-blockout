@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.17)
 if(CMAKE_C_COMPILER)
 endif()
 
-set(LIBNAME "csg_tools") # "The name of the library"
+set(LIBNAME "blockout") # "The name of the library"
 set(GODOT_PROJECT_DIR "project" CACHE STRING "The directory of a Godot project folder")
 
 # Make sure all the dependencies are satisfied
@@ -36,10 +36,10 @@ get_target_property(GODOTCPP_SUFFIX godot::cpp GODOTCPP_SUFFIX)
 get_target_property(GODOTCPP_PLATFORM godot::cpp GODOTCPP_PLATFORM)
 
 # Now we can specify our own project which will inherit any global cmake properties or variables that have been defined.
-project(godot-csg-tools
+project(godot-blockout
     VERSION 1.0
-    DESCRIPTION "Godot plugin for node-based procedural generation and manipulation."
-    HOMEPAGE_URL "https://github.com/qubebit/godot-csg-tools"
+    DESCRIPTION "Godot plugin for blockout and greybox level prototyping tools."
+    HOMEPAGE_URL "https://github.com/qubebit/godot-blockout"
     LANGUAGES CXX
 )
 

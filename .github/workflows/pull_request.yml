@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: godot-csg-tools-pr-${{ github.event.pull_request.number || github.ref }}
+  group: godot-blockout-pr-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
