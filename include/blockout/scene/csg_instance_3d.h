@@ -17,9 +17,13 @@ class CSGInstance3D : public MeshInstance3D {
 
 	CSGShape3D *find_csg_root() const;
 	void free_csg_children();
-	static void _set_owner_recursive(Node *p_node, Node *p_owner);
+	bool enter_edit_mode(CSGShape3D *p_root);
+	bool exit_edit_mode(CSGShape3D *p_root);
+	static void set_owner_recursive(Node *p_node, Node *p_owner);
 
-	void _update_render_visibility();
+	void update_render_visibility();
+	void append_baked_warnings(PackedStringArray &p_warnings) const;
+	void append_edit_mode_warnings(PackedStringArray &p_warnings) const;
 
 	void set_csg_source(const Ref<PackedScene> &p_csg_source);
 	Ref<PackedScene> get_csg_source() const;
@@ -29,6 +33,8 @@ protected:
 	void _notification(int p_what);
 
 public:
+	void _enter_tree() override;
+
 	void set_lightmap_texel_size(float p_texel_size);
 	float get_lightmap_texel_size() const;
 

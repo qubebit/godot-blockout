@@ -1,12 +1,12 @@
 #include "blockout/scene/csg_instance_3d.h"
 
 #include "blockout/api/csg_bake.h"
+#include "gdutil/nodes.h"
 
 #include "godot_cpp/classes/engine.hpp"
 #include "godot_cpp/classes/rendering_server.hpp"
 #include "godot_cpp/core/class_db.hpp"
 #include "godot_cpp/core/memory.hpp"
-#include "godot_cpp/variant/typed_array.hpp"
 
 namespace blockout::scene {
 
@@ -28,45 +28,72 @@ void CSGInstance3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("rebuild_mesh"), &CSGInstance3D::rebuild_mesh);
 }
 
+void CSGInstance3D::_enter_tree() {
+	// Keep the CSG source tree editor-only; the baked mesh is all a running game needs.
+	if (!Engine::get_singleton()->is_editor_hint()) {
+		free_csg_children();
+	}
+
+	update_render_visibility();
+}
+
 void CSGInstance3D::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE: {
-			// Keep the CSG source tree editor-only; the baked mesh is all a running game needs.
-			if (!Engine::get_singleton()->is_editor_hint()) {
-				free_csg_children();
-			}
-			_update_render_visibility();
-		} break;
 		case NOTIFICATION_CHILD_ORDER_CHANGED:
 		case NOTIFICATION_VISIBILITY_CHANGED: {
-			_update_render_visibility();
+			update_render_visibility();
 		} break;
 		default: {
 		} break;
 	}
 }
 
-CSGShape3D *CSGInstance3D::find_csg_root() const {
-	TypedArray<Node> children = get_children();
-	for (int i = 0; i < children.size(); i++) {
-		CSGShape3D *shape = Object::cast_to<CSGShape3D>(children[i]);
-		if (shape != nullptr) {
-			return shape;
-		}
-	}
-	return nullptr;
-}
+CSGShape3D *CSGInstance3D::find_csg_root() const { return gdutil::nodes::find_child<CSGShape3D>(this); }
 
 void CSGInstance3D::free_csg_children() {
-	TypedArray<Node> children = get_children();
-	for (int i = 0; i < children.size(); i++) {
-		CSGShape3D *shape = Object::cast_to<CSGShape3D>(children[i]);
-		if (shape == nullptr) {
-			continue;
-		}
+	gdutil::nodes::for_each_child<CSGShape3D>(this, [this](CSGShape3D *shape) {
 		remove_child(shape);
 		shape->queue_free();
+	});
+}
+
+bool CSGInstance3D::enter_edit_mode(CSGShape3D *p_root) {
+	if (p_root != nullptr || csg_source.is_null()) {
+		return false;
 	}
+
+	Node *instance = csg_source->instantiate();
+	CSGShape3D *instanced_root = Object::cast_to<CSGShape3D>(instance);
+	if (instanced_root == nullptr) {
+		if (instance != nullptr) {
+			memdelete(instance);
+		}
+
+		return false;
+	}
+
+	add_child(instanced_root);
+	set_owner_recursive(instanced_root, get_owner() != nullptr ? get_owner() : this);
+	return true;
+}
+
+bool CSGInstance3D::exit_edit_mode(CSGShape3D *p_root) {
+	if (p_root == nullptr) {
+		return false;
+	}
+
+	rebuild_mesh();
+	for (int i = 0; i < p_root->get_child_count(); i++) {
+		set_owner_recursive(p_root->get_child(i), p_root);
+	}
+
+	Ref<PackedScene> packed;
+	packed.instantiate();
+	packed->pack(p_root);
+	csg_source = packed;
+	remove_child(p_root);
+	p_root->queue_free();
+	return true;
 }
 
 void CSGInstance3D::set_lightmap_texel_size(float p_texel_size) { lightmap_texel_size = p_texel_size; }
@@ -77,52 +104,50 @@ void CSGInstance3D::set_csg_source(const Ref<PackedScene> &p_csg_source) { csg_s
 
 Ref<PackedScene> CSGInstance3D::get_csg_source() const { return csg_source; }
 
-void CSGInstance3D::_set_owner_recursive(Node *p_node, Node *p_owner) {
+void CSGInstance3D::set_owner_recursive(Node *p_node, Node *p_owner) {
 	p_node->set_owner(p_owner);
 	for (int i = 0; i < p_node->get_child_count(); i++) {
-		_set_owner_recursive(p_node->get_child(i), p_owner);
+		set_owner_recursive(p_node->get_child(i), p_owner);
 	}
 }
 
-void CSGInstance3D::_update_render_visibility() {
+void CSGInstance3D::update_render_visibility() {
 	bool edit_mode = find_csg_root() != nullptr;
 	RenderingServer::get_singleton()->instance_set_visible(get_instance(), is_visible_in_tree() && !edit_mode);
 }
 
-void CSGInstance3D::set_edit_mode(bool p_enabled) {
-	CSGShape3D *root = find_csg_root();
-
-	if (p_enabled) {
-		if (root != nullptr || csg_source.is_null()) {
-			return; // Already editable, or nothing to restore.
-		}
-		Node *instance = csg_source->instantiate();
-		CSGShape3D *instanced_root = Object::cast_to<CSGShape3D>(instance);
-		if (instanced_root == nullptr) {
-			if (instance != nullptr) {
-				memdelete(instance);
-			}
-			return;
-		}
-		add_child(instanced_root);
-		_set_owner_recursive(instanced_root, get_owner() != nullptr ? get_owner() : this);
-	} else {
-		if (root == nullptr) {
-			return;
-		}
-		rebuild_mesh();
-		for (int i = 0; i < root->get_child_count(); i++) {
-			_set_owner_recursive(root->get_child(i), root);
-		}
-		Ref<PackedScene> packed;
-		packed.instantiate();
-		packed->pack(root);
-		csg_source = packed;
-		remove_child(root);
-		root->queue_free();
+void CSGInstance3D::append_baked_warnings(PackedStringArray &p_warnings) const {
+	if (csg_source.is_null()) {
+		p_warnings.push_back("CSGInstance3D has no CSGShape3D child to bake. Add a CSGBox3D, CSGCombiner3D, "
+							 "etc. as a child.");
+		return;
 	}
 
-	_update_render_visibility();
+	if (get_mesh().is_null()) {
+		p_warnings.push_back("No baked mesh yet. Enter CSG edit mode and rebuild to generate the mesh.");
+	}
+}
+
+void CSGInstance3D::append_edit_mode_warnings(PackedStringArray &p_warnings) const {
+	p_warnings.push_back("Exit edit mode before running or exporting the game so the baked "
+						 "mesh reflects your latest changes.");
+
+	if (gdutil::nodes::count_children<CSGShape3D>(this) <= 1) {
+		return;
+	}
+
+	p_warnings.push_back("CSGInstance3D only bakes the first CSGShape3D child; additional top-level CSG "
+						 "shapes are ignored.");
+}
+
+void CSGInstance3D::set_edit_mode(bool p_enabled) {
+	CSGShape3D *root = find_csg_root();
+	bool changed = p_enabled ? enter_edit_mode(root) : exit_edit_mode(root);
+	if (!changed) {
+		return;
+	}
+
+	update_render_visibility();
 	update_configuration_warnings();
 }
 
@@ -140,33 +165,12 @@ void CSGInstance3D::rebuild_mesh() {
 PackedStringArray CSGInstance3D::_get_configuration_warnings() const {
 	PackedStringArray warnings = MeshInstance3D::_get_configuration_warnings();
 
-	CSGShape3D *root = find_csg_root();
-	if (root == nullptr) {
-		if (csg_source.is_null()) {
-			warnings.push_back("CSGInstance3D has no CSGShape3D child to bake. Add a CSGBox3D, CSGCombiner3D, "
-							   "etc. as a child.");
-		} else if (get_mesh().is_null()) {
-			warnings.push_back("No baked mesh yet. Enter CSG edit mode and rebuild to generate the mesh.");
-		}
+	if (find_csg_root() == nullptr) {
+		append_baked_warnings(warnings);
 		return warnings;
 	}
 
-	int32_t csg_child_count = 0;
-	TypedArray<Node> children = get_children();
-	for (int i = 0; i < children.size(); i++) {
-		if (Object::cast_to<CSGShape3D>(children[i]) != nullptr) {
-			csg_child_count++;
-		}
-	}
-
-	warnings.push_back("Exit edit mode before running or exporting the game so the baked "
-					   "mesh reflects your latest changes.");
-
-	if (csg_child_count > 1) {
-		warnings.push_back("CSGInstance3D only bakes the first CSGShape3D child; additional top-level CSG "
-						   "shapes are ignored.");
-	}
-
+	append_edit_mode_warnings(warnings);
 	return warnings;
 }
 
