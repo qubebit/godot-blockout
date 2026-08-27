@@ -1,6 +1,7 @@
 #pragma once
 
 #include "godot_cpp/classes/collision_shape3d.hpp"
+#include "godot_cpp/classes/concave_polygon_shape3d.hpp"
 #include "godot_cpp/classes/csg_shape3d.hpp"
 #include "godot_cpp/classes/mesh_instance3d.hpp"
 #include "godot_cpp/classes/packed_scene.hpp"
@@ -20,6 +21,7 @@ class CSGInstance3D : public MeshInstance3D {
 	bool generate_collision = false;
 	uint32_t collision_layer = 1;
 	uint32_t collision_mask = 1;
+	Ref<ConcavePolygonShape3D> collision_shape;
 
 	CSGShape3D *find_csg_root() const;
 	void free_csg_children();
@@ -28,7 +30,8 @@ class CSGInstance3D : public MeshInstance3D {
 	static void set_owner_recursive(Node *p_node, Node *p_owner);
 
 	void update_render_visibility();
-	void update_collision(const Ref<Mesh> &p_mesh);
+	void rebuild_collision_shape();
+	void update_collision();
 	StaticBody3D *find_collision_body() const;
 	void remove_collision_body();
 	StaticBody3D *ensure_collision_body();
@@ -38,6 +41,9 @@ class CSGInstance3D : public MeshInstance3D {
 
 	void set_csg_source(const Ref<PackedScene> &p_csg_source);
 	Ref<PackedScene> get_csg_source() const;
+
+	void set_collision_shape(const Ref<ConcavePolygonShape3D> &p_shape);
+	Ref<ConcavePolygonShape3D> get_collision_shape() const;
 
 protected:
 	static void _bind_methods();

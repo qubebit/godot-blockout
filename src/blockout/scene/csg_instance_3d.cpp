@@ -33,6 +33,12 @@ void CSGInstance3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "generate_collision"), "set_generate_collision",
 				 "is_generating_collision");
 
+	ClassDB::bind_method(D_METHOD("set_collision_shape", "shape"), &CSGInstance3D::set_collision_shape);
+	ClassDB::bind_method(D_METHOD("get_collision_shape"), &CSGInstance3D::get_collision_shape);
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "collision_shape", PROPERTY_HINT_RESOURCE_TYPE, "ConcavePolygonShape3D",
+							  PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_STORAGE),
+				 "set_collision_shape", "get_collision_shape");
+
 	ClassDB::bind_method(D_METHOD("set_collision_layer", "layer"), &CSGInstance3D::set_collision_layer);
 	ClassDB::bind_method(D_METHOD("get_collision_layer"), &CSGInstance3D::get_collision_layer);
 	ADD_GROUP("Collision", "collision_");
@@ -56,9 +62,9 @@ void CSGInstance3D::_validate_property(PropertyInfo &p_property) const {
 }
 
 void CSGInstance3D::_enter_tree() {
-	// Keep the CSG source tree editor-only; the baked mesh is all a running game needs.
 	if (!Engine::get_singleton()->is_editor_hint()) {
 		free_csg_children();
+		update_collision();
 	}
 
 	update_render_visibility();
@@ -131,6 +137,10 @@ void CSGInstance3D::set_csg_source(const Ref<PackedScene> &p_csg_source) { csg_s
 
 Ref<PackedScene> CSGInstance3D::get_csg_source() const { return csg_source; }
 
+void CSGInstance3D::set_collision_shape(const Ref<ConcavePolygonShape3D> &p_shape) { collision_shape = p_shape; }
+
+Ref<ConcavePolygonShape3D> CSGInstance3D::get_collision_shape() const { return collision_shape; }
+
 void CSGInstance3D::set_owner_recursive(Node *p_node, Node *p_owner) {
 	p_node->set_owner(p_owner);
 	for (int i = 0; i < p_node->get_child_count(); i++) {
@@ -165,7 +175,6 @@ StaticBody3D *CSGInstance3D::ensure_collision_body() {
 	StaticBody3D *body = memnew(StaticBody3D);
 	body->set_name("GeneratedCollision");
 	add_child(body, false, INTERNAL_MODE_BACK);
-	set_owner_recursive(body, get_owner() != nullptr ? get_owner() : this);
 	return body;
 }
 
@@ -176,22 +185,30 @@ CollisionShape3D *CSGInstance3D::ensure_collision_shape(StaticBody3D *p_body) {
 
 	CollisionShape3D *shape = memnew(CollisionShape3D);
 	p_body->add_child(shape);
-	set_owner_recursive(shape, get_owner() != nullptr ? get_owner() : this);
 	return shape;
 }
 
-void CSGInstance3D::update_collision(const Ref<Mesh> &p_mesh) {
-	if (!generate_collision || p_mesh.is_null()) {
+void CSGInstance3D::update_collision() {
+	if (Engine::get_singleton()->is_editor_hint()) {
+		return;
+	}
+
+	if (!generate_collision || collision_shape.is_null()) {
 		remove_collision_body();
 		return;
 	}
 
 	StaticBody3D *body = ensure_collision_body();
-	CollisionShape3D *collision_shape = ensure_collision_shape(body);
+	CollisionShape3D *shape_node = ensure_collision_shape(body);
 
 	body->set_collision_layer(collision_layer);
 	body->set_collision_mask(collision_mask);
-	collision_shape->set_shape(blockout::api::build_trimesh_collision_shape(p_mesh));
+	shape_node->set_shape(collision_shape);
+}
+
+void CSGInstance3D::rebuild_collision_shape() {
+	collision_shape =
+		generate_collision ? blockout::api::build_trimesh_collision_shape(get_mesh()) : Ref<ConcavePolygonShape3D>();
 }
 
 void CSGInstance3D::append_baked_warnings(PackedStringArray &p_warnings) const {
@@ -237,14 +254,14 @@ void CSGInstance3D::rebuild_mesh() {
 		return;
 	}
 
-	Ref<ArrayMesh> mesh = blockout::api::bake_csg_mesh(root, get_global_transform(), lightmap_texel_size);
-	set_mesh(mesh);
-	update_collision(mesh);
+	set_mesh(blockout::api::bake_csg_mesh(root, get_global_transform(), lightmap_texel_size));
+	rebuild_collision_shape();
 }
 
 void CSGInstance3D::set_generate_collision(bool p_enabled) {
 	generate_collision = p_enabled;
-	update_collision(get_mesh());
+	rebuild_collision_shape();
+	update_collision();
 	notify_property_list_changed();
 }
 
