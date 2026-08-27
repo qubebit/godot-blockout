@@ -30,6 +30,14 @@ jobs:
           rsync -a --exclude='bin/' project/addons/blockout/ staging/addons/blockout/
           mkdir -p staging/addons/blockout/bin/{linux,macos,windows,android,ios,web}
 
+      - name: Set addon version from release tag
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          VERSION="${RELEASE_TAG#v}"
+          sed -i -E "s/^version=\"[^\"]*\"$/version=\"${VERSION}\"/" staging/addons/blockout/plugin.cfg
+          grep -q "^version=\"${VERSION}\"$" staging/addons/blockout/plugin.cfg
+
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
         with:
