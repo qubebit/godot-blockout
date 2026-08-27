@@ -1,0 +1,9 @@
+CompileFlags:
+  CompilationDatabase: .
+Index:
+  Background: Build
+Diagnostics:
+  ClangTidy:
+    FastCheckFilter: Strict
+InlayHints:
+  Enabled: true

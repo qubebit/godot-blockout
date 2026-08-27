@@ -1,0 +1,8 @@
+InheritParentConfig: false
+Checks: >-
+  -*,
+  bugprone-*,
+  performance-*
+WarningsAsErrors: ""
+HeaderFilterRegex: "^src/.*"
+FormatStyle: file

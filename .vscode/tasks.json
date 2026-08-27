@@ -1,0 +1,61 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Generate",
+      "type": "shell",
+      "command": "sh",
+      "args": [
+        "scripts/generate_compile_commands.sh"
+      ],
+      "windows": {
+        "command": "python",
+        "args": [
+          "-m",
+          "SCons",
+          "compiledb=yes",
+          "compile_commands.json"
+        ]
+      },
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Build",
+      "type": "shell",
+      "command": "scons",
+      "windows": {
+        "command": "python",
+        "args": [
+          "-m",
+          "SCons"
+        ]
+      },
+      "group": "build",
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Tidy",
+      "type": "shell",
+      "command": "sh",
+      "args": [
+        "scripts/tidy.sh"
+      ],
+      "dependsOn": "Generate",
+      "dependsOrder": "sequence",
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Tidy Fix",
+      "type": "shell",
+      "command": "sh",
+      "args": [
+        "scripts/tidy.sh",
+        "--fix"
+      ],
+      "dependsOn": "Generate",
+      "dependsOrder": "sequence",
+      "problemMatcher": ["$gcc"]
+    }
+  ]
+}

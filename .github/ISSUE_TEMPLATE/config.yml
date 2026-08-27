@@ -1,0 +1,6 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: Discussions
+    url: https://github.com/qubebit/godot-csg-tools/discussions
+    about: Have a question or idea? Start a discussion instead of opening an issue.

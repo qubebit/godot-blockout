@@ -1,0 +1,81 @@
+name: Release
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  pull-requests: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build:
+    uses: ./.github/workflows/make_build.yml
+
+  release:
+    runs-on: ubuntu-22.04
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Copy addon source files
+        run: |
+          mkdir -p staging/addons/csg_tools
+          rsync -a --exclude='bin/' project/addons/csg_tools/ staging/addons/csg_tools/
+          mkdir -p staging/addons/csg_tools/bin/{linux,macos,windows,android,ios,web}
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          pattern: godot-cpp-template-*
+
+      - name: Copy binaries into addon
+        run: |
+          for artifact_dir in artifacts/godot-cpp-template-*; do
+            find "$artifact_dir" -type f \( -name '*.so' -o -name '*.dylib' -o -name '*.dll' -o -name '*.wasm' -o -name '*.a' -o -name '*.framework' \) | while read -r file; do
+              platform_dir=$(basename "$(dirname "$file")")
+              mkdir -p "staging/addons/csg_tools/bin/$platform_dir"
+              cp "$file" "staging/addons/csg_tools/bin/$platform_dir/"
+            done
+          done
+
+      - name: Add LICENSE
+        run: cp LICENSE.md staging/addons/csg_tools/LICENSE.md
+
+      - name: Create addon zip
+        working-directory: staging
+        run: zip -r "$GITHUB_WORKSPACE/csg-tools-${{ github.ref_name }}.zip" addons/
+
+      - name: Generate changelog
+        id: changelog
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --latest --strip header
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine pre-release
+        id: prerelease
+        run: |
+          TAG="${{ github.ref_name }}"
+          if [[ "$TAG" == *-* ]]; then
+            echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          body: ${{ steps.changelog.outputs.content }}
+          prerelease: ${{ steps.prerelease.outputs.is_prerelease }}
+          files: csg-tools-${{ github.ref_name }}.zip

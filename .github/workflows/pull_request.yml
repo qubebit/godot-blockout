@@ -1,0 +1,29 @@
+name: Validate Pull Request
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: godot-csg-tools-pr-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  validate-pr-title:
+    uses: qubebit/github-workflows/.github/workflows/validate-pr-title.yaml@main
+    permissions:
+      pull-requests: write
+
+  # validate-build:
+  #   uses: ./.github/workflows/ci.yml

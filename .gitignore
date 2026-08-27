@@ -1,0 +1,82 @@
+# Godot auto generated files
+*.gen.*
+.godot/
+
+# Ignore library files but not the gdextension file
+project/addons/csg_tools/bin/*
+!project/addons/csg_tools/bin/android
+project/addons/csg_tools/bin/android/*
+!project/addons/csg_tools/bin/android/.gitkeep
+!project/addons/csg_tools/bin/linux
+project/addons/csg_tools/bin/linux/*
+!project/addons/csg_tools/bin/linux/.gitkeep
+!project/addons/csg_tools/bin/macos
+project/addons/csg_tools/bin/macos/*
+!project/addons/csg_tools/bin/macos/.gitkeep
+!project/addons/csg_tools/bin/windows
+project/addons/csg_tools/bin/windows/*
+!project/addons/csg_tools/bin/windows/.gitkeep
+!project/addons/csg_tools/bin/*.gdextension
+
+# Ignore top-level build output binaries but keep platform folders
+bin/*
+!bin/android
+bin/android/*
+!bin/android/.gitkeep
+!bin/linux
+bin/linux/*
+!bin/linux/.gitkeep
+!bin/macos
+bin/macos/*
+!bin/macos/.gitkeep
+!bin/windows
+bin/windows/*
+!bin/windows/.gitkeep
+.sconsign*.dblite
+
+# Ignore custom.py
+custom.py
+
+# Ignore generated compile_commands.json
+compile_commands.json
+
+# Ignore files generated for documentation
+/src/gen
+
+# Binaries
+*.o
+*.os
+*.so
+*.obj
+*.bc
+*.pyc
+*.dblite
+*.pdb
+*.lib
+*.config
+*.creator
+*.creator.user
+*.files
+*.includes
+*.idb
+*.exp
+
+# Other stuff
+*.log
+
+# VSCode
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+.DS_Store
+
+# Jetbrains
+.idea/
+
+# Cmake
+cmake-build*
+CMakeUserPresets.json
+
+# Ignore thirdparty assets
+project/assets/thirdparty/*
