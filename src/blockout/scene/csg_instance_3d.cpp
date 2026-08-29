@@ -8,6 +8,7 @@
 #include "godot_cpp/classes/rendering_server.hpp"
 #include "godot_cpp/core/class_db.hpp"
 #include "godot_cpp/core/memory.hpp"
+#include "godot_cpp/core/object.hpp"
 
 namespace blockout::scene {
 
@@ -72,7 +73,10 @@ void CSGInstance3D::_enter_tree() {
 
 void CSGInstance3D::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_CHILD_ORDER_CHANGED:
+		case NOTIFICATION_CHILD_ORDER_CHANGED: {
+			discard_stale_cached_root();
+			update_render_visibility();
+		} break;
 		case NOTIFICATION_VISIBILITY_CHANGED: {
 			update_render_visibility();
 		} break;
@@ -86,12 +90,17 @@ void CSGInstance3D::_notification(int p_what) {
 
 CSGShape3D *CSGInstance3D::find_csg_root() const { return gdutil::nodes::find_child<CSGShape3D>(this); }
 
+CSGShape3D *CSGInstance3D::get_cached_csg_root() const {
+	return Object::cast_to<CSGShape3D>(ObjectDB::get_instance(cached_csg_root_id));
+}
+
 void CSGInstance3D::free_cached_csg_root() {
-	if (cached_csg_root != nullptr && cached_csg_root->get_parent() == nullptr) {
-		memdelete(cached_csg_root);
+	CSGShape3D *root = get_cached_csg_root();
+	if (root != nullptr && root->get_parent() == nullptr) {
+		memdelete(root);
 	}
 
-	cached_csg_root = nullptr;
+	cached_csg_root_id = ObjectID();
 }
 
 void CSGInstance3D::free_csg_children() {
@@ -101,31 +110,52 @@ void CSGInstance3D::free_csg_children() {
 	});
 }
 
-bool CSGInstance3D::instantiate_cached_csg_root() {
-	if (csg_source.is_null()) {
-		return false;
+void CSGInstance3D::discard_stale_cached_root() {
+	CSGShape3D *root = get_cached_csg_root();
+	if (root != nullptr && root->get_parent() == this) {
+		return;
 	}
 
+	cached_csg_root_id = ObjectID();
+}
+
+CSGShape3D *CSGInstance3D::instantiate_cached_csg_root() {
+	if (csg_source.is_null()) {
+		return nullptr;
+	}
+
+	if (CSGShape3D *root = get_cached_csg_root()) {
+		return root;
+	}
+
+	cached_csg_root_id = ObjectID();
+
 	Node *instance = csg_source->instantiate();
-	cached_csg_root = Object::cast_to<CSGShape3D>(instance);
-	if (cached_csg_root != nullptr) {
-		return true;
+	CSGShape3D *root = Object::cast_to<CSGShape3D>(instance);
+	if (root != nullptr) {
+		cached_csg_root_id = root->get_instance_id();
+		return root;
 	}
 
 	if (instance != nullptr) {
 		memdelete(instance);
 	}
 
-	return false;
+	return nullptr;
 }
 
 bool CSGInstance3D::enter_edit_mode(CSGShape3D *p_root) {
-	if (p_root != nullptr || (cached_csg_root == nullptr && !instantiate_cached_csg_root())) {
+	if (p_root != nullptr) {
 		return false;
 	}
 
-	add_child(cached_csg_root);
-	set_owner_recursive(cached_csg_root, get_owner() != nullptr ? get_owner() : this);
+	CSGShape3D *root = instantiate_cached_csg_root();
+	if (root == nullptr) {
+		return false;
+	}
+
+	add_child(root);
+	set_owner_recursive(root, get_owner() != nullptr ? get_owner() : this);
 	return true;
 }
 
@@ -144,8 +174,12 @@ bool CSGInstance3D::exit_edit_mode(CSGShape3D *p_root) {
 	packed->pack(p_root);
 	csg_source = packed;
 
-	// Not freed: cached_csg_root keeps it alive so undo/redo of edits made in edit mode stays valid.
+	if (cached_csg_root_id != ObjectID(p_root->get_instance_id())) {
+		free_cached_csg_root();
+	}
+
 	remove_child(p_root);
+	cached_csg_root_id = p_root->get_instance_id();
 	return true;
 }
 

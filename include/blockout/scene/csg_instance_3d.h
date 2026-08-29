@@ -6,6 +6,7 @@
 #include "godot_cpp/classes/mesh_instance3d.hpp"
 #include "godot_cpp/classes/packed_scene.hpp"
 #include "godot_cpp/classes/static_body3d.hpp"
+#include "godot_cpp/core/object_id.hpp"
 #include "godot_cpp/variant/packed_string_array.hpp"
 
 using namespace godot;
@@ -17,7 +18,7 @@ class CSGInstance3D : public MeshInstance3D {
 
 	Ref<PackedScene> csg_source;
 	float lightmap_texel_size = 0.2f;
-	CSGShape3D *cached_csg_root = nullptr;
+	ObjectID cached_csg_root_id;
 
 	bool generate_collision = false;
 	uint32_t collision_layer = 1;
@@ -25,11 +26,13 @@ class CSGInstance3D : public MeshInstance3D {
 	Ref<ConcavePolygonShape3D> collision_shape;
 
 	CSGShape3D *find_csg_root() const;
+	CSGShape3D *get_cached_csg_root() const;
 	void free_csg_children();
 	bool enter_edit_mode(CSGShape3D *p_root);
 	bool exit_edit_mode(CSGShape3D *p_root);
-	bool instantiate_cached_csg_root();
+	CSGShape3D *instantiate_cached_csg_root();
 	void free_cached_csg_root();
+	void discard_stale_cached_root();
 	static void set_owner_recursive(Node *p_node, Node *p_owner);
 
 	void update_render_visibility();
