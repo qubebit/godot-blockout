@@ -29,6 +29,7 @@ class CSGInstance3D : public MeshInstance3D {
 	CSGShape3D *find_csg_root() const;
 	bool has_current_csg_root() const;
 	CSGShape3D *get_cached_csg_root() const;
+	void update_edit_mode();
 	void free_csg_children();
 	bool enter_edit_mode(CSGShape3D *p_root);
 	bool exit_edit_mode(CSGShape3D *p_root);

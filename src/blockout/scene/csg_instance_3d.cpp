@@ -74,8 +74,10 @@ void CSGInstance3D::_enter_tree() {
 void CSGInstance3D::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_CHILD_ORDER_CHANGED: {
+			update_edit_mode();
 			reset_csg_state();
 			update_render_visibility();
+			update_configuration_warnings();
 		} break;
 		case NOTIFICATION_VISIBILITY_CHANGED: {
 			update_render_visibility();
@@ -97,6 +99,18 @@ bool CSGInstance3D::has_current_csg_root() const {
 
 CSGShape3D *CSGInstance3D::get_cached_csg_root() const {
 	return Object::cast_to<CSGShape3D>(ObjectDB::get_instance(cached_csg_root_id));
+}
+
+void CSGInstance3D::update_edit_mode() {
+	if (!Engine::get_singleton()->is_editor_hint() || edit_mode || !csg_source.is_null()) {
+		return;
+	}
+
+	if (find_csg_root() == nullptr) {
+		return;
+	}
+
+	set_edit_mode(true);
 }
 
 void CSGInstance3D::free_cached_csg_root() {
