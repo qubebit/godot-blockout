@@ -17,7 +17,7 @@ esac
 
 if [ "$(uname -s)" = "Darwin" ]; then
 	SDKROOT="$(xcrun --show-sdk-path)"
-	find src -type f -name '*.cpp' -exec clang-tidy --quiet $FIX_FLAG -p . --extra-arg-before=-isysroot --extra-arg-before="$SDKROOT" {} \;
+	find src -type f -name '*.cpp' ! -path 'src/gen/*' -exec clang-tidy --quiet $FIX_FLAG -p . --extra-arg-before=-isysroot --extra-arg-before="$SDKROOT" {} \;
 else
-	find src -type f -name '*.cpp' -exec clang-tidy --quiet $FIX_FLAG -p . {} \;
+	find src -type f -name '*.cpp' ! -path 'src/gen/*' -exec clang-tidy --quiet $FIX_FLAG -p . {} \;
 fi

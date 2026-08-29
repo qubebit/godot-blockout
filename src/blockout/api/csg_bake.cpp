@@ -18,7 +18,7 @@ bool get_csg_mesh_data(CSGShape3D *p_root, Transform3D &r_local_transform, Ref<A
 		return false;
 	}
 
-	r_local_transform = meshes[0];
+	r_local_transform = p_root->get_transform() * Transform3D(meshes[0]);
 	r_mesh = meshes[1];
 	return r_mesh.is_valid();
 }
@@ -52,7 +52,7 @@ Ref<ArrayMesh> bake_csg_mesh(CSGShape3D *p_root, const Transform3D &p_base_trans
 	}
 
 	mesh = apply_transform(mesh, local_transform);
-	mesh->lightmap_unwrap(p_base_transform, p_texel_size);
+	mesh->lightmap_unwrap(p_base_transform * local_transform, p_texel_size);
 	return mesh;
 }
 
