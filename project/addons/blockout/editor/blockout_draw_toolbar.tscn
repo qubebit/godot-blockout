@@ -1,9 +1,10 @@
 [gd_scene format=3 uid="uid://cgegbrmhvq7m0"]
 
 [ext_resource type="Script" uid="uid://cfnil3cqsxrx6" path="res://addons/blockout/editor/blockout_draw_toolbar.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://wg2kbj78lj8v" path="res://addons/blockout/icons/box_tool.svg" id="2_5ihoi"]
 
-[sub_resource type="DPITexture" id="DPITexture_8pf44"]
-_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><mask id=\"a\"><path fill=\"#fefefe\" d=\"M0 0h16v10a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2 2 2 0 0 0-2 2v2a2 2 0 0 0 2 2H0z\"/></mask><path fill=\"#5fb2ff\" d=\"M12 9a1 1 0 0 0-1 1v1h2v2h1a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1zm1 4h-2v-2h-1a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1z\"/><path fill=\"none\" stroke=\"#fc7f7f\" stroke-width=\"2\" d=\"m8 2 6 3v6l-6 3-6-3V5zm0 12V8l6-3M8 8 2 5\" mask=\"url(#a)\"/></svg>
+[sub_resource type="DPITexture" id="DPITexture_5ihoi"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><path fill=\"#e0e0e0\" d=\"M4 1 3 3l1 2v4H2v3.5a2.5 2.5 0 0 0 5 0V9H5V5l1-2-1-2zm6 .174a3 3 0 0 0 0 5.652V14a1 1 0 0 0 2 0V6.824a3 3 0 0 0 0-5.648V4a1 1 0 0 1-2 0z\"/></svg>
 "
 base_scale = 2.0
 saturation = 2.0
@@ -14,7 +15,13 @@ Color(1, 0.8666667, 0.39607844, 1): Color(0.83, 0.78, 0.62, 1)
 }
 
 [node name="BlockoutDrawToolbar" type="MarginContainer" unique_id=229337537]
+offset_right = 40.0
+offset_bottom = 92.0
 size_flags_horizontal = 0
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
 script = ExtResource("1")
 
 [node name="Content" type="VBoxContainer" parent="." unique_id=1901557548]
@@ -23,32 +30,40 @@ layout_mode = 2
 [node name="BoxButton" type="Button" parent="Content" unique_id=1173893110]
 layout_mode = 2
 tooltip_text = "Draw a CSGBox3D: click to start the base rectangle, click to confirm, move to set height, click to place."
+theme_type_variation = &"FlatButton"
 toggle_mode = true
-icon = SubResource("DPITexture_8pf44")
-flat = true
+icon = ExtResource("2_5ihoi")
 
 [node name="HSeparator" type="HSeparator" parent="Content" unique_id=1498988946]
 layout_mode = 2
 
-[node name="SettingsButton" type="Button" parent="Content"]
+[node name="SettingsButton" type="Button" parent="Content" unique_id=1654858743]
 layout_mode = 2
 tooltip_text = "Draw tool settings"
-flat = true
+theme_type_variation = &"FlatButton"
+icon = SubResource("DPITexture_5ihoi")
 
-[node name="SettingsPopup" type="PopupPanel" parent="."]
+[node name="SettingsPopup" type="PopupPanel" parent="." unique_id=1825391750]
 title = "Draw Tool Settings"
 
-[node name="PopupMargin" type="MarginContainer" parent="SettingsPopup"]
+[node name="PopupMargin" type="MarginContainer" parent="SettingsPopup" unique_id=757745078]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 108.0
+offset_bottom = 96.0
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="PopupVBox" type="VBoxContainer" parent="SettingsPopup/PopupMargin" unique_id=1080272223]
 layout_mode = 2
 
-[node name="PopupVBox" type="VBoxContainer" parent="SettingsPopup/PopupMargin"]
-layout_mode = 2
-
-[node name="GridStepLabel" type="Label" parent="SettingsPopup/PopupMargin/PopupVBox"]
+[node name="GridStepLabel" type="Label" parent="SettingsPopup/PopupMargin/PopupVBox" unique_id=2117529682]
 layout_mode = 2
 text = "Grid Step"
 
-[node name="GridStepSpinSlider" type="EditorSpinSlider" parent="SettingsPopup/PopupMargin/PopupVBox"]
+[node name="GridStepSpinSlider" type="EditorSpinSlider" parent="SettingsPopup/PopupMargin/PopupVBox" unique_id=2114558126]
 layout_mode = 2
 tooltip_text = "Grid snap step"
 min_value = 0.01
