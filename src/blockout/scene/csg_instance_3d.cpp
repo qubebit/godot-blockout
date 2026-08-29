@@ -74,7 +74,7 @@ void CSGInstance3D::_enter_tree() {
 void CSGInstance3D::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_CHILD_ORDER_CHANGED: {
-			discard_stale_cached_root();
+			reset_csg_state();
 			update_render_visibility();
 		} break;
 		case NOTIFICATION_VISIBILITY_CHANGED: {
@@ -89,6 +89,11 @@ void CSGInstance3D::_notification(int p_what) {
 }
 
 CSGShape3D *CSGInstance3D::find_csg_root() const { return gdutil::nodes::find_child<CSGShape3D>(this); }
+
+bool CSGInstance3D::has_current_csg_root() const {
+	CSGShape3D *root = find_csg_root();
+	return root != nullptr && ObjectID(root->get_instance_id()) == cached_csg_root_id;
+}
 
 CSGShape3D *CSGInstance3D::get_cached_csg_root() const {
 	return Object::cast_to<CSGShape3D>(ObjectDB::get_instance(cached_csg_root_id));
@@ -110,16 +115,12 @@ void CSGInstance3D::free_csg_children() {
 	});
 }
 
-void CSGInstance3D::discard_stale_cached_root() {
-	if (!cached_csg_root_id.is_valid()) {
+void CSGInstance3D::reset_csg_state() {
+	if (!Engine::get_singleton()->is_editor_hint() || !edit_mode || has_current_csg_root()) {
 		return;
 	}
 
-	CSGShape3D *root = get_cached_csg_root();
-	if (root != nullptr && root->get_parent() == this) {
-		return;
-	}
-
+	edit_mode = false;
 	cached_csg_root_id = ObjectID();
 	csg_source.unref();
 	set_mesh(Ref<Mesh>());
@@ -152,16 +153,25 @@ CSGShape3D *CSGInstance3D::instantiate_cached_csg_root() {
 }
 
 bool CSGInstance3D::enter_edit_mode(CSGShape3D *p_root) {
-	if (p_root != nullptr) {
-		return false;
-	}
-
-	CSGShape3D *root = instantiate_cached_csg_root();
+	CSGShape3D *root = p_root;
+	bool add_root = root == nullptr;
 	if (root == nullptr) {
-		return false;
+		root = instantiate_cached_csg_root();
+		if (root == nullptr) {
+			return false;
+		}
 	}
 
-	add_child(root);
+	if (!add_root && cached_csg_root_id != ObjectID(root->get_instance_id())) {
+		free_cached_csg_root();
+	}
+
+	cached_csg_root_id = ObjectID(root->get_instance_id());
+	edit_mode = true;
+	if (add_root) {
+		add_child(root);
+	}
+
 	set_owner_recursive(root, get_owner() != nullptr ? get_owner() : this);
 	return true;
 }
@@ -184,6 +194,7 @@ bool CSGInstance3D::exit_edit_mode(CSGShape3D *p_root) {
 		free_cached_csg_root();
 	}
 
+	edit_mode = false;
 	cached_csg_root_id = ObjectID();
 	remove_child(p_root);
 	cached_csg_root_id = root_id;
@@ -211,7 +222,6 @@ void CSGInstance3D::set_owner_recursive(Node *p_node, Node *p_owner) {
 }
 
 void CSGInstance3D::update_render_visibility() {
-	bool edit_mode = find_csg_root() != nullptr;
 	RenderingServer::get_singleton()->instance_set_visible(get_instance(), is_visible_in_tree() && !edit_mode);
 }
 
@@ -298,6 +308,10 @@ void CSGInstance3D::append_edit_mode_warnings(PackedStringArray &p_warnings) con
 }
 
 void CSGInstance3D::set_edit_mode(bool p_enabled) {
+	if (edit_mode == p_enabled) {
+		return;
+	}
+
 	CSGShape3D *root = find_csg_root();
 	bool changed = p_enabled ? enter_edit_mode(root) : exit_edit_mode(root);
 	if (!changed) {
@@ -308,7 +322,7 @@ void CSGInstance3D::set_edit_mode(bool p_enabled) {
 	update_configuration_warnings();
 }
 
-bool CSGInstance3D::is_edit_mode() const { return find_csg_root() != nullptr; }
+bool CSGInstance3D::is_edit_mode() const { return edit_mode; }
 
 void CSGInstance3D::rebuild_mesh() {
 	CSGShape3D *root = find_csg_root();
@@ -350,7 +364,7 @@ uint32_t CSGInstance3D::get_collision_mask() const { return collision_mask; }
 PackedStringArray CSGInstance3D::_get_configuration_warnings() const {
 	PackedStringArray warnings = MeshInstance3D::_get_configuration_warnings();
 
-	if (find_csg_root() == nullptr) {
+	if (!edit_mode) {
 		append_baked_warnings(warnings);
 		return warnings;
 	}
