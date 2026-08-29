@@ -111,12 +111,19 @@ void CSGInstance3D::free_csg_children() {
 }
 
 void CSGInstance3D::discard_stale_cached_root() {
+	if (!cached_csg_root_id.is_valid()) {
+		return;
+	}
+
 	CSGShape3D *root = get_cached_csg_root();
 	if (root != nullptr && root->get_parent() == this) {
 		return;
 	}
 
 	cached_csg_root_id = ObjectID();
+	csg_source.unref();
+	set_mesh(Ref<Mesh>());
+	collision_shape.unref();
 }
 
 CSGShape3D *CSGInstance3D::instantiate_cached_csg_root() {
@@ -172,14 +179,15 @@ bool CSGInstance3D::exit_edit_mode(CSGShape3D *p_root) {
 	Ref<PackedScene> packed;
 	packed.instantiate();
 	packed->pack(p_root);
-	csg_source = packed;
-
-	if (cached_csg_root_id != ObjectID(p_root->get_instance_id())) {
+	ObjectID root_id(p_root->get_instance_id());
+	if (cached_csg_root_id != root_id) {
 		free_cached_csg_root();
 	}
 
+	cached_csg_root_id = ObjectID();
 	remove_child(p_root);
-	cached_csg_root_id = p_root->get_instance_id();
+	cached_csg_root_id = root_id;
+	csg_source = packed;
 	return true;
 }
 
