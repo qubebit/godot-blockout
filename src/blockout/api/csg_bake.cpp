@@ -52,7 +52,7 @@ Ref<ArrayMesh> bake_csg_mesh(CSGShape3D *p_root, const Transform3D &p_base_trans
 	}
 
 	mesh = apply_transform(mesh, local_transform);
-	mesh->lightmap_unwrap(p_base_transform * local_transform, p_texel_size);
+	mesh->lightmap_unwrap(p_base_transform, p_texel_size);
 	return mesh;
 }
 
